@@ -13,7 +13,7 @@ import static org.junit.jupiter.api.Assertions.fail;
 public final class ConfigurationLoaderTest {
 
   @Test
-  public void testBasicJsonConversion() {
+  public void testBasicJsonConversion() throws IOException {
     String json = "{ " +
         "\"startPages\": [\"http://example.com\", \"http://example.com/foo\"], " +
         "\"ignoredUrls\": [\"http://example\\\\.com/.*\"], " +
