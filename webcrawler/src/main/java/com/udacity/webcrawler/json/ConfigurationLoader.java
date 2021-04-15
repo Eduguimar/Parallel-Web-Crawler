@@ -1,5 +1,6 @@
 package com.udacity.webcrawler.json;
 
+import java.io.IOException;
 import java.io.Reader;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -32,7 +33,7 @@ public final class ConfigurationLoader {
     // Using try-with-resources which implements the autocloseable feature
     try (Reader reader = Files.newBufferedReader(path)) {
       return read(reader);
-    } catch (Exception ex) {
+    } catch (IOException ex) {
       ex.printStackTrace();
       return null;
     }
