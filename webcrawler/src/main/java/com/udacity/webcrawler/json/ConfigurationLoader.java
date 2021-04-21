@@ -54,7 +54,7 @@ public final class ConfigurationLoader {
 
     try {
       CrawlerConfiguration config;
-      config = mapper.readValue(reader, CrawlerConfiguration.class);
+      config = mapper.readValue(reader, CrawlerConfiguration.Builder.class).build();
       return config;
     } catch (Exception ex) {
       ex.printStackTrace();
