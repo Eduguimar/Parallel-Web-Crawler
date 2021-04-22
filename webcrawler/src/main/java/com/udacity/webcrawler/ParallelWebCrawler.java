@@ -10,10 +10,7 @@ import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
-import java.util.concurrent.ConcurrentSkipListMap;
-import java.util.concurrent.ConcurrentSkipListSet;
-import java.util.concurrent.ForkJoinPool;
-import java.util.concurrent.RecursiveTask;
+import java.util.concurrent.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -51,8 +48,8 @@ final class ParallelWebCrawler implements WebCrawler {
   @Override
   public CrawlResult crawl(List<String> startingUrls) {
     Instant deadline = clock.instant().plus(timeout);
-    Map<String, Integer> counts = Collections.synchronizedMap(new HashMap<>());
-    Set<String> visitedUrls = Collections.synchronizedSet(new HashSet<>());
+    ConcurrentMap<String, Integer> counts = new ConcurrentHashMap<>();
+    ConcurrentSkipListSet<String> visitedUrls = new ConcurrentSkipListSet<>();
     for (String url : startingUrls) {
       pool.invoke(new InternalCrawler(url, deadline, maxDepth, counts, visitedUrls));
     }
@@ -74,10 +71,10 @@ final class ParallelWebCrawler implements WebCrawler {
   private String url;
   private Instant deadline;
   private int maxDepth;
-  private Map<String, Integer> counts;
-  private Set<String> visitedUrls;
+  private ConcurrentMap<String, Integer> counts;
+  private ConcurrentSkipListSet<String> visitedUrls;
 
-    public InternalCrawler(String url, Instant deadline, int maxDepth, Map<String, Integer> counts, Set<String> visitedUrls) {
+    public InternalCrawler(String url, Instant deadline, int maxDepth, ConcurrentMap<String, Integer> counts, ConcurrentSkipListSet<String> visitedUrls) {
       this.url = url;
       this.deadline = deadline;
       this.maxDepth = maxDepth;
@@ -100,12 +97,20 @@ final class ParallelWebCrawler implements WebCrawler {
       }
       visitedUrls.add(url);
       PageParser.Result result = parserFactory.get(url).parse();
-      for (Map.Entry<String, Integer> e : result.getWordCounts().entrySet()) {
-        if (counts.containsKey(e.getKey())) {
-          counts.put(e.getKey(), e.getValue() + counts.get(e.getKey()));
-        } else {
-          counts.put(e.getKey(), e.getValue());
-        }
+
+      for (ConcurrentMap.Entry<String, Integer> e : result.getWordCounts().entrySet()) {
+        counts.compute(e.getKey(), (k, v) -> {
+          if (counts.containsKey(k)) {
+            return counts.put(k, v + counts.get(k));
+          } else {
+            return counts.put(k, v);
+          }
+        });
+//        if (counts.containsKey(e.getKey())) {
+//          counts.put(e.getKey(), e.getValue() + counts.get(e.getKey()));
+//        } else {
+//          counts.put(e.getKey(), e.getValue());
+//        }
       }
       List<InternalCrawler> subtasks = new ArrayList<>();
       for (String link : result.getLinks()) {
