@@ -11,7 +11,7 @@ Q1. Run the web crawler using the configurations located at src/main/config/writ
 
     Why did the parser take more time when run with ParallelWebCrawler?
 
-    Because the ParallelWebCrawler read more urls than the SequentialWebCrawler. Therefore, the parse time is longer, because it has more content to read.
+    Because the Profiler sums the time taken by the parse method in all threads. The record method in the ProfilingState class, which is used in the ProfilingMethodInterceptor, sums the duration received.
 
 
 Q2. Your manager ran your crawler on her old personal computer, using the configurations from Q1, and she notices that
