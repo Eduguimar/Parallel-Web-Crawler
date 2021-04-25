@@ -1,5 +1,5 @@
 {
-  "startPages": ["https://www.udacity.com/", "https://github.com/"],
+  "startPages": ["https://www.udacity.com/"],
   "ignoredUrls": ["https://blog.udacity.com/.*"],
   "ignoredWords": ["^.{1,3}$"],
   "parallelism": 4,
